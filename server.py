@@ -22,10 +22,6 @@ app.jinja_env.undefined = StrictUndefined
 @app.route('/')
 def index():
     """Homepage."""
-
-    # if user_id in session:
-    #     flash("Logged out")
-    #     return redirect('/')
     
     return render_template("homepage.html")
                          
@@ -36,6 +32,17 @@ def user_list():
     
     users = User.query.order_by('user_id').all()
     return render_template("user_list.html", users=users)
+
+@app.route('/movies')
+def movies_list():
+
+    movies = Movie.query.order_by('title').all()
+    return render_template('movies_list.html', movies=movies)
+
+@app.route('/movie/<str:title>')
+def movie_info(title):
+    movie_title =  Movie.query.filter_by(Movie.title=
+    i
 
 
 @app.route('/register', methods=["GET"])
@@ -67,11 +74,12 @@ def process_login_form():
     email = request.form.get('email')
     password = request.form.get('password')
 
+
     user = User.query.filter_by(email=email, password=password).first()
     if user:
         flash("Login successful.")
         session['user_id'] = user.user_id
-        return redirect('/users/<int:uid>')
+        return redirect('/users/{}'.format(user.user_id))
     else:
         flash("Login unsuccesseful.")
         return redirect('/login')
@@ -95,7 +103,15 @@ def show_user_info(uid):
 
     return render_template('user_info.html',user=user, age=user.age, zipcode=user.zipcode, ratings=user.ratings)
     
-
+@app.route('/logout')
+def logout():
+    if 'user_id' in session:
+        session.pop('user_id', None)
+        flash('You are now logged out')
+        return redirect('/')
+    else:
+        flash('You are not logged in')
+        return redirect('/login')
 
 
 
