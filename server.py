@@ -22,14 +22,83 @@ app.jinja_env.undefined = StrictUndefined
 @app.route('/')
 def index():
     """Homepage."""
+
+    # if user_id in session:
+    #     flash("Logged out")
+    #     return redirect('/')
+    
     return render_template("homepage.html")
+                         
 
 
 @app.route('/users')
 def user_list():
     
-    users = User.query.all()
+    users = User.query.order_by('user_id').all()
     return render_template("user_list.html", users=users)
+
+
+@app.route('/register', methods=["GET"])
+def register_form():
+
+    return render_template("register_form.html")
+
+
+@app.route('/register', methods=["POST"])
+def register_process():
+
+    email = request.form.get('email')
+    password = request.form.get('password')
+
+
+    if User.query.filter_by(email='email').first():
+        flash("User with this email already exists.")
+        return redirect('/')
+    else:
+        new_user = User(email=email, password=password)
+        db.session.add(new_user)
+        db.session.commit()
+        flash("User added to database. Please log in.")
+        return redirect('/login')
+
+
+@app.route('/login', methods=["POST"])
+def process_login_form():
+    email = request.form.get('email')
+    password = request.form.get('password')
+
+    user = User.query.filter_by(email=email, password=password).first()
+    if user:
+        flash("Login successful.")
+        session['user_id'] = user.user_id
+        return redirect('/users/<int:uid>')
+    else:
+        flash("Login unsuccesseful.")
+        return redirect('/login')
+
+
+
+
+
+
+@app.route('/login')
+def show_login_form():
+    return render_template("login_form.html")
+
+
+@app.route('/users/<int:uid>')
+def show_user_info(uid):
+
+    print("User UID is: {}".format(uid))
+
+    user = User.query.get(uid)
+
+    return render_template('user_info.html',user=user, age=user.age, zipcode=user.zipcode, ratings=user.ratings)
+    
+
+
+
+
 
 
 
